@@ -31,9 +31,11 @@ contract Polleth {
 
 contract Poll {
 
+    event VoteCast(address _voter, bool _hasVoted);
+
     address public owner;
     bool private ipfsSet;
-    bytes32 public ipfsHash; // need to chop off teh Qm for this to work right
+    bytes32 public ipfsHash;
     uint[] public voteCount;
     uint8 public numberOfOptions;
     uint public totalVotes;
@@ -61,6 +63,7 @@ contract Poll {
         require(hasVoted[msg.sender] != true);
         voteCount[_option] += 1;
         hasVoted[msg.sender] = true;
+        emit VoteCast(msg.sender, hasVoted[msg.sender]);
         return true;
     }
     

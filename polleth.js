@@ -1,18 +1,13 @@
 /* polleth.js
 // test spawning of a new contract from Ropsten deployement of polleth contract
 */
-const pollethAddress = '0x460EfF952e6eF2F139C8148BEcb0366E3fCfc69d' // Ropsten TestNet
-const pollethABI = [{"constant":false,"inputs":[],"name":"withdrawFunds","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"polls","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_options","type":"uint8"}],"name":"spawnPoll","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"numberOfPolls","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newPoll","type":"address"}],"name":"NewPoll","type":"event"}]
-const polleth = web3.eth.contract(pollethABI).at(pollethAddress)
-// Define Gas Price / Limit
-let gasPriceInGwei = 2
-let gasPriceInWei = web3.toWei(gasPriceInGwei, 'gwei')
-let gasPriceInHex = web3.toHex(gasPriceInWei)
-let gasLimit = 3000000
-let gasLimitInHex = web3.toHex(gasLimit)
+var web3 = new Web3(web3.currentProvider);
+var pollethAddress = '0x460EfF952e6eF2F139C8148BEcb0366E3fCfc69d' // Ropsten TestNet
+var pollethABI = [{"constant":false,"inputs":[],"name":"withdrawFunds","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"polls","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_options","type":"uint8"}],"name":"spawnPoll","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"numberOfPolls","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newPoll","type":"address"}],"name":"NewPoll","type":"event"}]
+var polleth = web3.eth.contract(pollethABI).at(pollethAddress)
+
 // Load Listener to get user values
-let sendButton = document.getElementById('send')
-let numberOfOptions, rawLoad, txData
+var sendButton = document.getElementById('send')
 
 web3.version.getNetwork((err, netId) => {
   if (err) {
@@ -23,9 +18,23 @@ web3.version.getNetwork((err, netId) => {
       var account = web3.eth.accounts[0];
       if (account) {
         sendButton.addEventListener('click', function(){
-          numberOfOptions = document.getElementById('numberOfOptions').value
-          if (numberOfOptions) {
-            spawnNewPoll();
+          var options = document.getElementById('numberOfOptions').value
+          if (options) {
+            var tx = {
+              from: account,
+              to: pollethAddress,
+              data: polleth.spawnPoll.getData(options)
+            }
+            web3.eth.sendTransaction(tx, function(err,data){
+              if (!err) {
+                txData = 'https://etherscan.io/tx/' + data + " RECEIVED!"
+                console.log(data)
+                document.getElementById('txData').innerHTML = txData
+              }
+              else {
+                console.log(err)
+              }
+            });
           }
         });
       }
@@ -37,30 +46,3 @@ web3.version.getNetwork((err, netId) => {
       console.log('Not Connected to Ropsten Testnet')
   }
 })
-function spawnNewPoll(){
-  web3.eth.getTransactionCount(web3.eth.accounts[0], function(err, data){
-    if (data){
-      // Build, Sign, Send, Show
-      // Build that shit
-      rawLoad = {
-        "from": web3.eth.accounts[0],
-        "to": pollethAddress,
-        "gas": gasLimitInHex,
-        "gasPrice": gasPriceInHex,
-        "value": 0x0,
-        "nonce": web3.toHex(data),
-        "data": polleth.spawnPoll(numberOfOptions)
-      }
-      web3.eth.sendTransaction(rawLoad, function(err,hash){
-        if (!err) {
-          txData = 'https://etherscan.io/tx/' + hash
-          console.log(hash)
-          document.getElementById('txData').innerHTML = txData
-        }
-        else {
-          console.log(err)
-        }
-      });
-    }
-  })
-}

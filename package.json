@@ -1,0 +1,28 @@
+{
+    "name": "polleth",
+    "version": "0.1.0-alpha.2",
+    "description": "Ethereum/IPFS Poll Generator",
+    "private": true,
+    "keywords": [
+        "polleth",
+        "poll",
+        "polling",
+        "vote",
+        "voting",
+        "social",
+        "ethereum",
+        "ipfs",
+        "web3"
+    ],
+    "author": "Bob Curtis",
+    "license": "MIT",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "webpack"
+    },
+    "devDependencies": {
+        "webpack": "^4.0.1",
+        "webpack-cli": "^2.0.9"
+    },
+    "dependencies": {}
+}

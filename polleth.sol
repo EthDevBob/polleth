@@ -13,8 +13,8 @@ contract Polleth {
         owner = msg.sender;
     }
 
-    function spawnPoll(uint8 _options) public returns(address) {
-        Poll newPoll = new Poll(_options, msg.sender);
+    function spawnPoll(uint8 _options, bool _multipleChoice) public returns(address) {
+        Poll newPoll = new Poll(_options, _multipleChoice, msg.sender);
         polls.push(newPoll);
         numberOfPolls += 1;
         emit NewPoll(newPoll);
@@ -35,23 +35,24 @@ contract Poll {
 
     address public owner;
     bool private ipfsSet;
-    bytes32 public ipfsHash;
-    uint[] public voteCount;
+    string public ipfsHash;
     uint8 public numberOfOptions;
-    uint public totalVotes;
+    bool private multipleChoice;
+    uint[] public votes;
+    uint public voteCount;
     mapping (address => bool) public hasVoted;
 
-    constructor(uint8 _options, address _creator) public {
+    constructor(uint8 _options, bool _multipleChoice, address _creator) public {
         require(numberOfOptions == 0);
         uint8 i;
         owner = _creator;
         numberOfOptions = _options;
         for (i = 0; i < numberOfOptions; i++) {
-            voteCount.push(0);
+            votes.push(0);
         }
     }
 
-    function setIpfsHash(bytes32 _hash) public returns(bool) {
+    function setIpfsHash(string _hash) public returns(bool) {
         require(msg.sender == owner);
         require(ipfsSet == false);
         ipfsHash = _hash;
@@ -59,9 +60,22 @@ contract Poll {
         return true;
     }
 
-    function voteForOption(uint _option) public returns(bool) {
+    function voteForOption(uint8 _option) public returns(bool) {
         require(hasVoted[msg.sender] != true);
-        voteCount[_option] += 1;
+        votes[_option] += 1;
+        voteCount += 1;
+        hasVoted[msg.sender] = true;
+        emit VoteCast(msg.sender, hasVoted[msg.sender]);
+        return true;
+    }
+
+    function voteForOptions(uint8[] _options) public returns(bool) {
+        require(hasVoted[msg.sender] != true);
+        uint8 i;
+        for (i = 0; i < _options.length; i++) {
+            votes[_options[i]] += 1;
+        }
+        voteCount += 1;
         hasVoted[msg.sender] = true;
         emit VoteCast(msg.sender, hasVoted[msg.sender]);
         return true;

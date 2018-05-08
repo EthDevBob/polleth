@@ -9,9 +9,11 @@ contract Polleth {
     address[] public polls;
     uint public numberOfPolls;
 
-    constructor() public{
+    constructor() public {
         owner = msg.sender;
     }
+
+    function() public payable { }
 
     function spawnPoll(uint8 _options, bool _multipleChoice) public returns(address) {
         Poll newPoll = new Poll(_options, _multipleChoice, msg.sender);
@@ -45,12 +47,15 @@ contract Poll {
     constructor(uint8 _options, bool _multipleChoice, address _creator) public {
         require(numberOfOptions == 0);
         uint8 i;
+        multipleChoice = _multipleChoice;
         owner = _creator;
         numberOfOptions = _options;
         for (i = 0; i < numberOfOptions; i++) {
             votes.push(0);
         }
     }
+
+    function() public payable { }
 
     function setIpfsHash(string _hash) public returns(bool) {
         require(msg.sender == owner);
@@ -71,6 +76,7 @@ contract Poll {
 
     function voteForOptions(uint8[] _options) public returns(bool) {
         require(hasVoted[msg.sender] != true);
+        require(multipleChoice == true);
         uint8 i;
         for (i = 0; i < _options.length; i++) {
             votes[_options[i]] += 1;
